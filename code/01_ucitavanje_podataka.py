@@ -5,11 +5,24 @@ Created on Wed May 27 20:44:19 2026
 @author: Milica
 """
 
+# %% dokumentacija
+
+# Opis: Ucitavanje, ciscenje i priprema tri skupa podataka:
+#       - Maloprodajne cene goriva u SAD (1995-2021)
+#       - Globalne cene sirove nafte (1995-2021)  
+#       - Kurs americkog dolara (2006-2021)
+#
+# Output: 
+#       - data/processed/df_original.csv
+#       - data/processed/df_scaled.csv
+#       - data/processed/scaler.pkl
+
 # %% biblioteke
 
 import pandas as pd
 import os
 from sklearn.preprocessing import MinMaxScaler
+import pickle
 
 os.chdir('C:/Users/Milica/Documents/PetroVision')
 
@@ -171,3 +184,16 @@ print(df_scaled[['date', 'regular_conv', 'crude_oil', 'usd_index']].head(3))
 print()
 print("MIN/MAX po kolonama posle skaliranja:")
 print(df_scaled[cols_to_scale].agg(['min', 'max']))
+
+# %% cuvanje podataka
+
+# sacuvamo ova dataframe-a u fajlove, da ne mora svaki put da se pokrece kod
+df.to_csv('data/processed/df_original.csv', index=False)
+df_scaled.to_csv('data/processed/df_scaled.csv', index=False)
+
+# Scaler cuvamo posebno u pickle fajlu jer ce trebati kasnije kada budemo radile inverznu 
+# transformaciju predvidjanja nazad u stvarne vrednosti (korak 5 iz spec).
+with open('data/processed/scaler.pkl', 'wb') as f:
+    pickle.dump(scaler, f)
+
+print("Podaci sacuvani")
