@@ -219,7 +219,7 @@ if not stacionarna:
     
     print("\n>>> TEST NAKON 1. DIFERENCIRANJA:")
     stacionarna_diff1 = adf_test(serija_diff1, "regular_conv (1. diferenciranje)")
-    
+     
     if stacionarna_diff1:
         d = 1
     else:
