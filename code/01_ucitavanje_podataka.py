@@ -24,7 +24,7 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 
-os.chdir('C:/Users/Milica/Documents/PetroVision')
+os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
 
 # %% cene goriva
 
@@ -154,6 +154,13 @@ df['covid_flag'] = ((df['date'] >= '2020-03-09') &
                     (df['date'] <= '2021-02-15')).astype(int)
 print()
 print(f"Redovi označeni kao COVID period: {df['covid_flag'].sum()}")
+
+# %% finansijska kriza
+
+df['crisis_flag'] = ((df['date'] >= '2008-08-04') & 
+                     (df['date'] <= '2009-06-01')).astype(int)
+print()
+print(f"Redovi označeni kao FINANSIJSKA KRIZA: {df['crisis_flag'].sum()}")
 
 # %% min-max normalizacija
 
