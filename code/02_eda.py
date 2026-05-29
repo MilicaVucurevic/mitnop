@@ -39,7 +39,7 @@ for i, col in enumerate(fuel_cols):
         axes[i].legend(fontsize=8)
 fig.suptitle('Maloprodajne cene goriva u SAD (1995-2021)', fontsize=13, y=1.01)
 plt.tight_layout() # da se naslovi, oznake i legende na preklapaju
-plt.savefig('../data/processed/vizualizacija_goriva.png', dpi=150, bbox_inches='tight') #cuvamo grafik kao png fajl
+#plt.savefig('../data/processed/vizualizacija_goriva.png', dpi=150, bbox_inches='tight') #cuvamo grafik kao png fajl
 plt.show()
 
 # cene sirove nafte i usd indexa
@@ -61,7 +61,7 @@ axes[1].set_ylabel('Index')
 axes[1].set_title('Kurs americkog dolara (USD index)')
 
 plt.tight_layout()
-plt.savefig('../data/processed/vizualizacija_nafta_usd.png', dpi=150, bbox_inches='tight')
+#plt.savefig('../data/processed/vizualizacija_nafta_usd.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # komentari za sve kategorije goriva i za dolar
@@ -109,7 +109,7 @@ for col in fuel_cols:
     
     fig.suptitle(f'STL dekompozicija - {col}', fontsize=13)
     plt.tight_layout()
-    plt.savefig(f'../data/processed/stl_{col}.png', dpi=150, bbox_inches='tight')
+    #plt.savefig(f'../data/processed/stl_{col}.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 # %% analiza korelacije izmedju cene goriva, sirove nafte i USD indeksa
@@ -134,7 +134,7 @@ sns.heatmap(corr_matrix,                # i lakse se kontrolise svaki podgrafik 
 
 ax.set_title('Korelaciona matrica - cene goriva, nafta i USD index (2006-2021)', fontsize=12)
 plt.tight_layout()
-plt.savefig('../data/processed/heatmap_korelacija.png', dpi=150, bbox_inches='tight')
+#plt.savefig('../data/processed/heatmap_korelacija.png', dpi=150, bbox_inches='tight')
 plt.show()
  
 # Sa korelacione matrice mozemo videti sledece:
@@ -166,7 +166,7 @@ ax.set_xlabel('Godina')
 ax.set_ylabel('USD/galon')
 ax.tick_params(axis='x', rotation=45)
 plt.tight_layout()
-plt.savefig('../data/processed/boxplot_regular_conv.png', dpi=150, bbox_inches='tight')
+#plt.savefig('../data/processed/boxplot_regular_conv.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # koristimo samo regular_conv kao predstavnika svih kategorija goriva
