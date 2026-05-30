@@ -192,6 +192,14 @@ print()
 print("MIN/MAX po kolonama posle skaliranja:")
 print(df_scaled[cols_to_scale].agg(['min', 'max']))
 
+# %% prilagodjavanje podataka skupu USD index koji krece od 2006.
+
+# Posto usd_index pocinje tek od 2006. godine,
+# ovde odsecamo dataset na period 2006-2021 kako bismo izbegli stotine NaN vrednosti.
+df_scaled = df_scaled[df_scaled['date'] >= '2006-01-01'].reset_index(drop=True)
+print(f"Dimenzije nakon filtriranja (od 2006. godine): {df_scaled.shape}")
+print(df_scaled.head(3))
+
 # %% cuvanje podataka
 
 # sacuvamo ova dataframe-a u fajlove, da ne mora svaki put da se pokrece kod
