@@ -102,8 +102,7 @@ print("Podaci sacuvani na putanji: data/processed/df_features.csv")
 print(f"Konacne dimenzije tabele: {df_fe.shape}")
 
 # %% ciscenje NaN vrednosti
- 
-# dropna() uklanja sve redove koji imaju barem jedan NaN.
+
 df_clean = df_fe.dropna().reset_index(drop=True)
 print(f"Shape nakon dropna(): {df_clean.shape}")
 print(f"Uklonjeno redova: {len(df_fe) - len(df_clean)}")
@@ -155,7 +154,6 @@ print(f"y_lstm oblik (Samples, ): {y_lstm.shape}")
 
 # %% hronoloska podela skupa (70 / 15 / 15)
  
-# VAZNO: podela mora biti hronoloska (bez shuffle-a)!
  
 n = len(X_lstm)
  
