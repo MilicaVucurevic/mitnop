@@ -17,17 +17,15 @@ Created on Wed May 27 20:44:19 2026
 #       - data/processed/df_scaled.csv
 #       - data/processed/scaler.pkl
 
-# %% biblioteke
-
 import pandas as pd
 import os
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 
-os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
+#os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
+os.chdir('C:/Users/Milica/Documents/PetroVision')
 
 # %% cene goriva
-
 df_gorivo = pd.read_csv('data/raw/Weekly_Retail_Gasoline_and_Diesel_Prices.csv', 
                         skiprows=6,
                         parse_dates=['Week of'])
