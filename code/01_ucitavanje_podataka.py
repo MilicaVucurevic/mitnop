@@ -22,8 +22,8 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 
-#os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
-os.chdir('C:/Users/Milica/Documents/PetroVision')
+os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
+#os.chdir('C:/Users/Milica/Documents/PetroVision')
 
 # %% cene goriva
 df_gorivo = pd.read_csv('data/raw/Weekly_Retail_Gasoline_and_Diesel_Prices.csv', 
@@ -139,7 +139,7 @@ print(df.describe())
 # %% detekcija COVID outlier-a
 
 # pregled cena 2019-2021 da vidimo kad su se stabilizovale, da bismo znali koji tacno opseg da posmatramo
-covid_period = df[(df['date'] >= '2019-01-01') & (df['date'] <= '2021-12-31')]
+covid_period = df[(df['date'] >= '2020-03-01') & (df['date'] <= '2023-05-01')]
 print()
 print(covid_period[['date', 'regular_conv', 'crude_oil']].to_string())
 
@@ -155,8 +155,8 @@ print(f"Redovi označeni kao COVID period: {df['covid_flag'].sum()}")
 
 # %% finansijska kriza
 
-df['crisis_flag'] = ((df['date'] >= '2008-08-04') & 
-                     (df['date'] <= '2009-06-01')).astype(int)
+df['crisis_flag'] = ((df['date'] >= '2008-01-01') & 
+                     (df['date'] <= '2008-12-31')).astype(int)
 print()
 print(f"Redovi označeni kao FINANSIJSKA KRIZA: {df['crisis_flag'].sum()}")
 

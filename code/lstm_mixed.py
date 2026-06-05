@@ -1,85 +1,87 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun May 31 2026
+Created on Fri Jun  5 14:34:55 2026
 
-@author: Milica
+@author: danij
 """
 
 # %% dokumentacija
-
-# Opis: Razvoj i treniranje LSTM modela za predikciju cena regular_conv benzina.
-#       LSTM je multivarijavantna metoda - koristi cene goriva, sirove nafte i USD indeksa (2006-2021).
-#       Arhitektura: dva stekovana LSTM sloja + Dropout regularizacija + Dense izlazni sloj.
-#       Early Stopping na osnovu validation loss-a.
-#       Walk-Forward validacija za realnu procenu generalizacije.
+ 
+# Opis: Razvoj i treniranje LSTM modela na stratifikovanom skupu podataka.
+#       Stratifikacija: 70% iz perioda finansijske krize + 70% iz covid perioda +
+#                       70% iz normalnog perioda, spojeno hronoloski.
+#       Arhitektura je identicna originalnom LSTM modelu:
+#       dva LSTM sloja + Dropout + Dense izlazni sloj.
+#       Cilj: ispitati da li ravnomerna zastupljenost sva tri tipa trzisnih
+#       uslova u trening skupu poboljsava generalizaciju modela.
 #
 # Input:
-#       - data/processed/X_train.pkl, X_val.pkl, X_test.pkl
-#       - data/processed/y_train.pkl, y_val.pkl, y_test.pkl
-#       - data/processed/dates_train.pkl, dates_val.pkl, dates_test.pkl
+#       - data/processed/X_train_mix.pkl, X_val_mix.pkl, X_test_mix.pkl
+#       - data/processed/y_train_mix.pkl, y_val_mix.pkl, y_test_mix.pkl
+#       - data/processed/dates_train_mix.pkl, dates_val_mix.pkl, dates_test_mix.pkl
 #       - data/processed/scaler.pkl
 #
 # Output:
-#       - data/processed/lstm_model.keras
-#       - data/processed/lstm_history.pkl
-#       - data/processed/lstm_predictions.pkl
-#       - data/processed/lstm_metrics.pkl
-
+#       - data/processed/lstm_mix_model.keras
+#       - data/processed/lstm_mix_history.pkl
+#       - data/processed/lstm_mix_predictions.pkl
+#       - data/processed/lstm_mix_metrics.pkl
+ 
 # %% biblioteke
-
+ 
 import numpy as np
 import pandas as pd
 import os
 import pickle
 import matplotlib.pyplot as plt
-
+ 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-
+ 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
+ 
 # %% ucitavanje podataka
-
+ 
 def load_pkl(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
-
-X_train = load_pkl('../../data/processed/X_train.pkl')
-X_val   = load_pkl('../../data/processed/X_val.pkl')
-X_test  = load_pkl('../../data/processed/X_test.pkl')
-
-y_train = load_pkl('../../data/processed/y_train.pkl')
-y_val   = load_pkl('../../data/processed/y_val.pkl')
-y_test  = load_pkl('../../data/processed/y_test.pkl')
-
-dates_train = load_pkl('../../data/processed/dates_train.pkl')
-dates_val   = load_pkl('../../data/processed/dates_val.pkl')
-dates_test  = load_pkl('../../data/processed/dates_test.pkl')
-
-scaler = load_pkl('../../data/processed/scaler.pkl')
-
-print("Uspesno ucitani podaci:")
+ 
+X_train = load_pkl(' ../../data/processed/X_train_mix.pkl')
+X_val   = load_pkl(' ../../data/processed/X_val_mix.pkl')
+X_test  = load_pkl(' ../../data/processed/X_test_mix.pkl')
+ 
+y_train = load_pkl(' ../../data/processed/y_train_mix.pkl')
+y_val   = load_pkl(' ../../data/processed/y_val_mix.pkl')
+y_test  = load_pkl(' ../../data/processed/y_test_mix.pkl')
+ 
+dates_train = load_pkl(' ../../data/processed/dates_train_mix.pkl')
+dates_val   = load_pkl(' ../../data/processed/dates_val_mix.pkl')
+dates_test  = load_pkl(' ../../data/processed/dates_test_mix.pkl')
+ 
+scaler = load_pkl(' ../../data/processed/scaler.pkl')
+ 
+print("Uspesno ucitani podaci (pomesani/spojeni skup):")
 print(f"  X_train : {X_train.shape}  | y_train : {y_train.shape}")
 print(f"  X_val   : {X_val.shape}   | y_val   : {y_val.shape}")
 print(f"  X_test  : {X_test.shape}   | y_test  : {y_test.shape}")
 print(f"  Oblik (Samples, Timesteps, Features): {X_train.shape}")
-
+ 
 # %% definisanje parametara modela
-
-LSTM_UNITS_1   = 64     # broj neurona u prvom LSTM sloju
-LSTM_UNITS_2   = 32     # broj neurona u drugom LSTM sloju
-DROPOUT_RATE   = 0.10    # procenat neurona koji se iskljucuju tokom treninga (regularizacija)
-DENSE_UNITS    = 16     # broj neurona u Dense sloju pre izlaza
-LEARNING_RATE  = 0.001  # korak ucenja za ADAM optimizator
-BATCH_SIZE     = 32     # broj uzoraka koji se obradjuju zajedno pre azuriranja tezina
-MAX_EPOCHS     = 150    # maksimalan broj epoha (Early Stopping ce zaustaviti ranije)
-PATIENCE       = 35     # broj epoha bez poboljsanja pre zaustavljanja (Early Stopping)
+ 
+LSTM_UNITS_1   = 64
+LSTM_UNITS_2   = 32
+DROPOUT_RATE   = 0.10
+DENSE_UNITS    = 16
+LEARNING_RATE  = 0.001
+BATCH_SIZE     = 32
+MAX_EPOCHS     = 150
+PATIENCE       = 15
 N_FEATURES     = X_train.shape[2]
 N_TIMESTEPS    = X_train.shape[1]
-
+ 
 print("\nParametri modela:")
 print(f"  Timesteps : {N_TIMESTEPS}")
 print(f"  Features  : {N_FEATURES}")
@@ -89,70 +91,60 @@ print(f"  Dropout   : {DROPOUT_RATE}")
 print(f"  Batch size: {BATCH_SIZE}")
 print(f"  Max epoha : {MAX_EPOCHS}")
 print(f"  Patience  : {PATIENCE}")
-
+ 
 # %% izgradnja arhitekture modela
-
-# Postavljamo seed za reproduktibilnost - da bi svako pokretanje dalo iste rezultate
+ 
 tf.random.set_seed(42)
 np.random.seed(42)
-
+ 
 model = Sequential([
-    # Prvi LSTM sloj - return_sequences=True jer sledi jos jedan LSTM sloj
-    # Prima 3D ulaz oblika (Samples, Timesteps, Features)
-    LSTM(LSTM_UNITS_1, 
-         return_sequences=True, 
+    LSTM(LSTM_UNITS_1,
+         return_sequences=True,
          kernel_initializer='glorot_uniform',
          input_shape=(N_TIMESTEPS, N_FEATURES),
          name='lstm_1'),
     Dropout(DROPOUT_RATE, name='dropout_1'),
-    
-    # Drugi LSTM sloj - return_sequences=False jer sledi Dense sloj
-    LSTM(LSTM_UNITS_2, 
+ 
+    LSTM(LSTM_UNITS_2,
          return_sequences=False,
          kernel_initializer='glorot_uniform',
          name='lstm_2'),
     Dropout(DROPOUT_RATE, name='dropout_2'),
-    
-    # Dense sloj za dodatnu nelinearnost pre izlaza
+ 
     Dense(DENSE_UNITS, activation='relu', kernel_initializer='glorot_uniform', name='dense_1'),
-    
-    # Izlazni sloj - jedan neuron jer predvidjamo jednu vrednost (cenu benzina)
     Dense(1, name='output')
 ])
-
+ 
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-    loss='mse',         # MSE kao loss funkcija (standardno za regresiju)
-    metrics=['mae']     # pratimo i MAE tokom treninga
+    loss='mse',
+    metrics=['mae']
 )
-
+ 
 model.summary()
-
+ 
 # %% definisanje callback-ova
-
-# Early Stopping - zaustavlja trening ako val_loss ne poboljsava epohe
+ 
 early_stopping = EarlyStopping(
     monitor='val_loss',
     patience=PATIENCE,
-    restore_best_weights=True,  # vraca tezine iz najbolje epohe
+    restore_best_weights=True,
     verbose=1
 )
-
-# ReduceLROnPlateau - smanjuje learning rate ako val_loss stagnira
-# pomaze modelu da "fine-tune" kada se priblizi optimumu
+ 
 reduce_lr = ReduceLROnPlateau(
     monitor='val_loss',
-    factor=0.6,         # nova lr = stara lr * 0.5
-    patience=10,         # ceka 7 epoha pre smanjenja
-    min_lr=1e-5,        # minimalna dozvoljena lr
+    factor=0.6,
+    patience=10,
+    min_lr=1e-5,
     verbose=1
 )
-
+ 
 # %% treniranje modela
-
-print("\nPokretanje treniranja LSTM modela...")
+ 
+print("\nPokretanje treniranja LSTM modela (izmesani skup)...")
 print("=" * 50)
-
+ 
 history = model.fit(
     X_train, y_train,
     validation_data=(X_val, y_val),
@@ -161,7 +153,7 @@ history = model.fit(
     callbacks=[early_stopping, reduce_lr],
     verbose=1
 )
-
+ 
 epoha_zaustavljanja = early_stopping.stopped_epoch
 if epoha_zaustavljanja > 0:
     best_epoch = epoha_zaustavljanja - PATIENCE + 1
@@ -169,95 +161,83 @@ if epoha_zaustavljanja > 0:
     print(f"Najbolje tezine su iz epohe: {best_epoch}")
 else:
     print(f"\nTrening zavrsen bez Early Stopping-a ({MAX_EPOCHS} epoha)")
-
-# %% grafik krive ucenja (learning curve)
-
+ 
+# %% grafik krive ucenja
+ 
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# Loss (MSE)
+ 
 axes[0].plot(history.history['loss'], label='Train Loss', color='steelblue')
 axes[0].plot(history.history['val_loss'], label='Val Loss', color='red')
 axes[0].set_title('Learning Curve - Loss (MSE)')
 axes[0].set_xlabel('Epoha')
 axes[0].set_ylabel('MSE')
 axes[0].legend()
-
-# MAE
+ 
 axes[1].plot(history.history['mae'], label='Train MAE', color='steelblue')
 axes[1].plot(history.history['val_mae'], label='Val MAE', color='red')
 axes[1].set_title('Learning Curve - MAE')
 axes[1].set_xlabel('Epoha')
 axes[1].set_ylabel('MAE')
 axes[1].legend()
-
-plt.suptitle('LSTM - Krive ucenja', fontsize=13)
+ 
+plt.suptitle('LSTM (izmesani skup) - Krive ucenja', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_learning_curve.png', dpi=150, bbox_inches='tight')
+#plt.savefig('../../data/processed/lstm_strat_learning_curve.png', dpi=150, bbox_inches='tight')
 plt.show()
-
-
+ 
 # %% predikcije na validacionom i test skupu
-
-# predikcije su u skaliranom prostoru [0,1] - treba inverzna transformacija
+ 
 y_val_pred_scaled  = model.predict(X_val)
 y_test_pred_scaled = model.predict(X_test)
-
-
-# inverzna Min-Max transformacija
-# scaler je fitovan na sve kolone, regular_conv je na indeksu 6
-# moramo da napravimo niz iste sirine kao originalni (9 kolona) i stavimo predikcije na pravo mesto
-REGULAR_CONV_IDX = 6  # indeks kolone regular_conv u cols_to_scale iz 01_ucitavanje_podataka.py
-
+ 
+REGULAR_CONV_IDX = 6
+ 
 def inverse_transform_target(y_scaled, scaler, col_idx, n_cols=9):
-    # pravimo matricu nula iste sirine kao originalni skup
     dummy = np.zeros((len(y_scaled), n_cols))
     dummy[:, col_idx] = y_scaled.flatten()
-    # inverzna transformacija
     inversed = scaler.inverse_transform(dummy)
     return inversed[:, col_idx]
-
-y_val_true  = inverse_transform_target(y_val,            scaler, REGULAR_CONV_IDX)
-y_val_pred  = inverse_transform_target(y_val_pred_scaled, scaler, REGULAR_CONV_IDX)
-y_test_true = inverse_transform_target(y_test,            scaler, REGULAR_CONV_IDX)
+ 
+y_val_true  = inverse_transform_target(y_val,             scaler, REGULAR_CONV_IDX)
+y_val_pred  = inverse_transform_target(y_val_pred_scaled,  scaler, REGULAR_CONV_IDX)
+y_test_true = inverse_transform_target(y_test,             scaler, REGULAR_CONV_IDX)
 y_test_pred = inverse_transform_target(y_test_pred_scaled, scaler, REGULAR_CONV_IDX)
-
+ 
 # %% racunanje metrika
-
+ 
 def compute_metrics(y_true, y_pred):
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     mae  = mean_absolute_error(y_true, y_pred)
     mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
     return rmse, mae, mape
-
+ 
 val_rmse,  val_mae,  val_mape  = compute_metrics(y_val_true,  y_val_pred)
 test_rmse, test_mae, test_mape = compute_metrics(y_test_true, y_test_pred)
-
+ 
 print("\nMetrike na VALIDACIONOM skupu:")
 print(f"  RMSE : {val_rmse:.4f} USD/galon")
 print(f"  MAE  : {val_mae:.4f} USD/galon")
 print(f"  MAPE : {val_mape:.2f}%")
-
+ 
 print("\nMetrike na TEST skupu:")
 print(f"  RMSE : {test_rmse:.4f} USD/galon")
 print(f"  MAE  : {test_mae:.4f} USD/galon")
 print(f"  MAPE : {test_mape:.2f}%")
-
+ 
 # %% vizualizacija predikcija
-
+ 
 dates_val_dt  = pd.to_datetime(dates_val)
 dates_test_dt = pd.to_datetime(dates_test)
-
+ 
 fig, axes = plt.subplots(2, 1, figsize=(14, 10))
-
-# validacioni skup
+ 
 axes[0].plot(dates_val_dt, y_val_true, color='steelblue', linewidth=1.5, label='Stvarne vrednosti')
 axes[0].plot(dates_val_dt, y_val_pred, color='red', linewidth=1.5, linestyle='--', label='LSTM predikcije')
 axes[0].fill_between(dates_val_dt, y_val_true, y_val_pred, alpha=0.15, color='red', label='Greška')
 axes[0].set_title(f'Validacioni skup | RMSE={val_rmse:.4f} | MAE={val_mae:.4f} | MAPE={val_mape:.2f}%')
 axes[0].set_ylabel('USD/galon')
 axes[0].legend()
-
-# test skup
+ 
 axes[1].plot(dates_test_dt, y_test_true, color='steelblue', linewidth=1.5, label='Stvarne vrednosti')
 axes[1].plot(dates_test_dt, y_test_pred, color='red', linewidth=1.5, linestyle='--', label='LSTM predikcije')
 axes[1].fill_between(dates_test_dt, y_test_true, y_test_pred, alpha=0.15, color='red', label='Greška')
@@ -265,42 +245,37 @@ axes[1].set_title(f'Test skup | RMSE={test_rmse:.4f} | MAE={test_mae:.4f} | MAPE
 axes[1].set_ylabel('USD/galon')
 axes[1].set_xlabel('Datum')
 axes[1].legend()
-
-plt.suptitle('LSTM - Predikcije vs Stvarne vrednosti', fontsize=13)
+ 
+plt.suptitle('LSTM (izmesani skup) - Predikcije vs Stvarne vrednosti', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_predikcije.png', dpi=150, bbox_inches='tight')
+#plt.savefig('../../data/processed/lstm_strat_predikcije.png', dpi=150, bbox_inches='tight')
 plt.show()
-
+ 
 # %% residual plot
-
+ 
 reziduali_test = y_test_true - y_test_pred
-
+ 
 fig, axes = plt.subplots(2, 1, figsize=(14, 7))
-
+ 
 axes[0].plot(dates_test_dt, reziduali_test, color='darkorange', linewidth=0.8)
 axes[0].axhline(0, color='black', linestyle='--', linewidth=1)
 axes[0].set_title('Reziduali na test skupu (stvarna - predviđena vrednost)')
 axes[0].set_ylabel('Greška (USD/galon)')
-
+ 
 axes[1].hist(reziduali_test, bins=40, color='darkorange', alpha=0.7, edgecolor='white')
 axes[1].axvline(0, color='black', linestyle='--', linewidth=1)
 axes[1].set_title('Distribucija reziduala')
 axes[1].set_xlabel('Greška (USD/galon)')
 axes[1].set_ylabel('Frekvencija')
-
+ 
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_reziduali.png', dpi=150, bbox_inches='tight')
+#plt.savefig('../../data/processed/lstm_strat_reziduali.png', dpi=150, bbox_inches='tight')
 plt.show()
-
-# Model pokazuje gresku tokom COVID perioda usled nagle promene
-# u podacima koji nije bio zastupljen u trening skupu.
-# Ovo predstavlja ogranicenje modela pri nesvakidasnjim trzisnim 
-# dogadjajima.
-
+ 
 # %% cuvanje modela i rezultata
-
-lstm_metrics = {
-    'model'     : 'LSTM',
+ 
+lstm_strat_metrics = {
+    'model'     : 'LSTM_stratified',
     'val_rmse'  : val_rmse,
     'val_mae'   : val_mae,
     'val_mape'  : val_mape,
@@ -308,53 +283,47 @@ lstm_metrics = {
     'test_mae'  : test_mae,
     'test_mape' : test_mape,
 }
-
-lstm_predictions = {
-    'dates_test'  : dates_test_dt,
-    'y_true'      : y_test_true,
-    'y_pred'      : y_test_pred,
-    'dates_val'   : dates_val_dt,
-    'val_true'    : y_val_true,
-    'val_pred'    : y_val_pred,
+ 
+lstm_strat_predictions = {
+    'dates_test' : dates_test_dt,
+    'y_true'     : y_test_true,
+    'y_pred'     : y_test_pred,
+    'dates_val'  : dates_val_dt,
+    'val_true'   : y_val_true,
+    'val_pred'   : y_val_pred,
 }
-os.makedirs('data/processed', exist_ok=True)  # kreira folder ako ne postoji
-model.save('data/processed/lstm_model.keras')
-
-with open('data/processed/lstm_history.pkl', 'wb') as f:
+ 
+os.makedirs('../../data/processed', exist_ok=True)
+model.save('../../data/processed/lstm_strat_model.keras')
+ 
+with open('../../data/processed/lstm_strat_history.pkl', 'wb') as f:
     pickle.dump(history.history, f)
-
-with open('data/processed/lstm_predictions.pkl', 'wb') as f:
-    pickle.dump(lstm_predictions, f)
-
-with open('data/processed/lstm_metrics.pkl', 'wb') as f:
-    pickle.dump(lstm_metrics, f)
-
+ 
+with open('../../data/processed/lstm_strat_predictions.pkl', 'wb') as f:
+    pickle.dump(lstm_strat_predictions, f)
+ 
+with open('../../data/processed/lstm_strat_metrics.pkl', 'wb') as f:
+    pickle.dump(lstm_strat_metrics, f)
+ 
 print("\nSačuvano:")
-print("data/processed/lstm_model.keras")
-print("data/processed/lstm_history.pkl")
-print("data/processed/lstm_predictions.pkl")
-print("data/processed/lstm_metrics.pkl")
+print("  data/processed/lstm_strat_model.keras")
+print("  data/processed/lstm_strat_history.pkl")
+print("  data/processed/lstm_strat_predictions.pkl")
+print("  data/processed/lstm_strat_metrics.pkl")
 print(f"\n{'='*50}")
-print("LSTM TRENIRANJE ZAVRSENO")
+print("LSTM (STRATIFIKOVANI SKUP) TRENIRANJE ZAVRSENO")
 print(f"{'='*50}")
 print(f"  Val  RMSE: {val_rmse:.4f} | MAE: {val_mae:.4f} | MAPE: {val_mape:.2f}%")
 print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2f}%")
 
-# %%
-#LSTM TRENIRANJE ZAVRSENO
-
-# Val  RMSE: 0.1154 | MAE: 0.0944 | MAPE: 3.68%
-# Test RMSE: 0.2074 | MAE: 0.1604 | MAPE: 6.40%
-
 # %% zakljucak
 
-# ARIMA je znacajno bolja od LSTM na ovom datasetu, i to na oba skupa.
-# Razlozi:
+# Metrike na VALIDACIONOM skupu:
+#  RMSE : 0.1267 USD/galon
+#  MAE  : 0.1037 USD/galon
+#  MAPE : 4.03%
 
-# Cene goriva su visoko autokorelisane — sledeca vrednost jako zavisi od prethodne, 
-# sto je upravo ono za šta je ARIMA dizajnirana
-# LSTM je mocniji ali mu treba mnogo vise podataka da pokaze prednost
-# ARIMA je jednostavniji model ali savrseno odgovara ovom tipu vremenske serije
-
-# Kompleksniji model ne znaci uvek bolji rezultat,vazno je odabrati model koji 
-# odgovara prirodi podataka.
+# Metrike na TEST skupu:
+#  RMSE : 0.1377 USD/galon
+#  MAE  : 0.1112 USD/galon
+#  MAPE : 5.55%
