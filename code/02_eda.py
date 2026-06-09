@@ -39,7 +39,7 @@ for i, col in enumerate(fuel_cols):
         axes[i].legend(fontsize=8)
 fig.suptitle('Maloprodajne cene goriva u SAD (1995-2021)', fontsize=13, y=1.01)
 plt.tight_layout() # da se naslovi, oznake i legende na preklapaju
-plt.savefig('../data/processed/vizualizacija_goriva.png', dpi=150, bbox_inches='tight') #cuvamo grafik kao png fajl
+plt.savefig('results/vizualizacija_goriva.png', dpi=150, bbox_inches='tight') #cuvamo grafik kao png fajl
 plt.show()
 
 # cene sirove nafte i usd indexa
@@ -61,7 +61,7 @@ axes[1].set_ylabel('Index')
 axes[1].set_title('Kurs americkog dolara (USD index)')
 
 plt.tight_layout()
-plt.savefig('../data/processed/vizualizacija_nafta_usd.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/vizualizacija_nafta_usd.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # komentari za sve kategorije goriva i za dolar
@@ -75,10 +75,10 @@ plt.show()
 # Od 2015: ponovni rast, sa naglim skokom tokom COVID-a 2020.
 # jak dolar -> jeftinija nafta
 
-#U ranom periodu (1995–2008) uočava se blagi porast amplitude sezonske komponente paralelno sa rastom trenda, 
-#što ukazuje na delimično multiplikativno ponašanje. 
-#Međutim, u periodu nakon 2008. amplituda ostaje stabilna, 
-#stoga je aditivni STL model ocenjen kao prihvatljiv pristup za exploratornu analizu.
+#U ranom periodu uocava se blagi porast amplitude sezonske komponente paralelno sa rastom trenda, 
+#sto ukazuje na delimicno multiplikativno ponasanje. 
+#Medjutim, u periodu nakon 2008. amplituda ostaje stabilna, 
+#stoga je aditivni STL model ocenjen kao prihvatljiv pristup za analizu.
 
 # %% primena STL dekompozicije
 
@@ -109,7 +109,7 @@ for col in fuel_cols:
     
     fig.suptitle(f'STL dekompozicija - {col}', fontsize=13)
     plt.tight_layout()
-    plt.savefig(f'../data/processed/stl_{col}.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'results/stl_{col}.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 # %% analiza korelacije izmedju cene goriva, sirove nafte i USD indeksa
@@ -134,7 +134,7 @@ sns.heatmap(corr_matrix,                # i lakse se kontrolise svaki podgrafik 
 
 ax.set_title('Korelaciona matrica - cene goriva, nafta i USD index (2006-2021)', fontsize=12)
 plt.tight_layout()
-plt.savefig('../data/processed/heatmap_korelacija.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/heatmap_korelacija.png', dpi=150, bbox_inches='tight')
 plt.show()
  
 # Sa korelacione matrice mozemo videti sledece:
@@ -166,7 +166,7 @@ ax.set_xlabel('Godina')
 ax.set_ylabel('USD/galon')
 ax.tick_params(axis='x', rotation=45)
 plt.tight_layout()
-plt.savefig('../data/processed/boxplot_regular_conv.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/boxplot_regular_conv.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # koristimo samo regular_conv kao predstavnika svih kategorija goriva
@@ -190,34 +190,31 @@ plt.show()
 def adf_test(serija, naziv):
     rezultat = adfuller(serija.dropna(), autolag='AIC')
     
-    print(f"\n{'='*50}")
     print(f"ADF test: {naziv}")
-    print(f"{'='*50}")
     print(f"  Test statistika : {rezultat[0]:.4f}")
     print(f"  p-value         : {rezultat[1]:.4f}")
     print(f"  Broj lagova (AIC): {rezultat[2]}")
-    print(f"  Broj opservacija: {rezultat[3]}")
+    print(f"  Broj merenja: {rezultat[3]}")
     print("  Kriticne vrednosti:")
     for nivo, vrednost in rezultat[4].items():
         print(f"    {nivo}: {vrednost:.4f}")
     
     stacionarna = rezultat[1] < 0.05
-    print(f"\n  >> {'STACIONARNA (odbacujemo H0)' if stacionarna else 'NIJE STACIONARNA (ne mozemo odbaciti H0)'}")
+    print(f"\n{'STACIONARNA (odbacujemo H0)' if stacionarna else 'NIJE STACIONARNA (ne mozemo odbaciti H0)'}")
     return stacionarna
 
 # testiramo na regular_conv kao reprezentativan primer svih goriva
-# (korelaciona analiza pokazala da se sve kategorije krecu gotovo identicno)
 
 serija_originalna = df.set_index('date')['regular_conv'].dropna()
 
-print("\n>>> TEST NA ORIGINALNOJ SERIJI:")
+print("\nTest na originalnoj seriji:")
 stacionarna = adf_test(serija_originalna, "regular_conv (originalna)")
 
 if not stacionarna:
     # prvo diferenciranje
     serija_diff1 = serija_originalna.diff().dropna()
     
-    print("\n>>> TEST NAKON 1. DIFERENCIRANJA:")
+    print("\nTest nakon 1. diferenciranja:")
     stacionarna_diff1 = adf_test(serija_diff1, "regular_conv (1. diferenciranje)")
      
     if stacionarna_diff1:
@@ -226,12 +223,10 @@ if not stacionarna:
         # drugo diferenciranje, ukoliko je potrebno
         serija_diff2 = serija_diff1.diff().dropna()
         
-        print("\n>>> TEST NAKON 2. DIFERENCIRANJA:")
+        print("\nTest nakon 2. diferenciranja:")
         adf_test(serija_diff2, "regular_conv (2. diferenciranje)")
         d = 2
 else:
     d = 0
 
-print(f"\n{'='*50}")
 print(f"ZAKLJUCAK: parametar d za ARIMA = {d}")
-print(f"{'='*50}")

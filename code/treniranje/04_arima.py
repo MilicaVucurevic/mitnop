@@ -9,8 +9,8 @@ Created on Sun May 31 14:47:26 2026
  
 # Opis: Razvoj i treniranje ARIMA modela za predikciju cena regular_conv benzina.
 #       ARIMA je univarijantna metoda - koristi samo istorijske cene goriva (1995-2021).
-#       Parametar d=1 utvrđen ADF testom u 02_eda.py.
-#       Parametri p i q određuju se na osnovu ACF/PACF grafika.
+#       Parametar d=1 utvrdjen ADF testom u 02_eda.py.
+#       Parametri p i q odredjuju se na osnovu ACF/PACF grafika.
 #       Walk-Forward validacija za realnu procenu generalizacije.
 #
 # Input:
@@ -39,8 +39,8 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # %% ucitavanje podataka
  
-# ARIMA koristi originalne (neskaliranje) vrednosti na punom periodu 1995-2021
-df = pd.read_csv('../../data/processed/df_original.csv', parse_dates=['date'])
+# ARIMA koristi originalne (neskalirane) vrednosti na punom periodu 1995-2021
+df = pd.read_csv('data/processed/df_original.csv', parse_dates=['date'])
 df = df.set_index('date')
  
 serija = df['regular_conv'].dropna()
@@ -68,7 +68,7 @@ axes[1].set_title('PACF - regular_conv (nakon 1. diferenciranja)')
 axes[1].set_xlabel('Lag (nedelje)')
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/acf_pacf.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/acf_pacf.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # %% definisanje parametara modela
@@ -82,7 +82,6 @@ d = 1
  
 print("\nPretrazivanje optimalnih parametara (p, d, q) na osnovu AIC...")
 print(f"{'p':>4} {'d':>4} {'q':>4} {'AIC':>12} {'BIC':>12}")
-print("-" * 40)
  
 
 rezultati_grid = []
@@ -99,7 +98,7 @@ for p in p_vrednosti:
             })
             print(f"{p:>4} {d:>4} {q:>4} {fit_temp.aic:>12.2f} {fit_temp.bic:>12.2f}")
         except Exception as e:
-            print(f"{p:>4} {d:>4} {q:>4}   GREŠKA: {e}")
+            print(f"{p:>4} {d:>4} {q:>4}   GRESKA: {e}")
  
 # sortiramo po AIC-u i uzimamo najbolji
 df_grid = pd.DataFrame(rezultati_grid).sort_values('aic')
@@ -122,9 +121,9 @@ val_serija   = serija.iloc[train_end:val_end]
 test_serija  = serija.iloc[val_end:]
  
 print("\nPodela serije:")
-print(f"  Train : {len(train_serija)} obs | {train_serija.index[0].date()} -> {train_serija.index[-1].date()}")
-print(f"  Val   : {len(val_serija)}  obs | {val_serija.index[0].date()} -> {val_serija.index[-1].date()}")
-print(f"  Test  : {len(test_serija)}  obs | {test_serija.index[0].date()} -> {test_serija.index[-1].date()}")
+print(f"  Train : {len(train_serija)} uzoraka | {train_serija.index[0].date()} -> {train_serija.index[-1].date()}")
+print(f"  Val   : {len(val_serija)}  uzoraka | {val_serija.index[0].date()} -> {val_serija.index[-1].date()}")
+print(f"  Test  : {len(test_serija)}  uzoraka | {test_serija.index[0].date()} -> {test_serija.index[-1].date()}")
  
 # treniramo na trening skupu
 print(f"\nTreniranje ARIMA({BEST_P}, {BEST_D}, {BEST_Q}) na trening skupu...")
@@ -153,7 +152,7 @@ print(f"Test RMSE: {test_rmse_d:.4f} | MAE: {test_mae_d:.4f} | MAPE: {test_mape_
 fig = arima_fit.plot_diagnostics(figsize=(14, 10))
 fig.suptitle(f'Dijagnostika reziduala - ARIMA({BEST_P},{BEST_D},{BEST_Q})', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/arima_dijagnostika.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arima_dijagnostika.png', dpi=150, bbox_inches='tight')
 plt.show()
  
 # Ljung-Box test - da li su reziduali beli sum (bez autokorelacije)
@@ -166,25 +165,25 @@ print(lb_test)
 #    1. uragan Katrina (2005-2006)
 #    2. finansijska kriza (2008-2009)
 
-# 2. Histogtram + KDE
-# Plavi stubici (Hist) — stvarna distribucija reziduala
-# Narandzasta kriva (KDE) — procenjena gustina reziduala
-# Zelena kriva N(0,1) — idealna normalna raspodela
+# 2. Histogram + KDE
+# Plavi stubici (Hist) - stvarna distribucija reziduala
+# Narandzasta kriva (KDE) - procenjena gustina reziduala
+# Zelena kriva N(0,1) - idealna normalna raspodela
 # narandzasta kriva je uza i visa od zelene, znaci da većina 
 # reziduala je vrlo blizu nule (model cesto gresi malo), 
 # ali povremeno pravi velike greske (oni skokovi iz prethodnog 
-# grafika — Katrina, finansijska kriza).
+# grafika - Katrina, finansijska kriza).
 
 # 3. Normal Q-Q plot
 # srednji deo: tacke lepo prate crvenu liniju,
 #              u normalnim trzisnim uslovima reziduali su normalno raspodeljeni
 # levi rep: tacke skacu daleko ispod linije, posebno one tri 
-#           izolovane tackice dole levo  — to su veliki padovi cena (Katrina 2005, finansijska kriza 2008) 
-# desni rep: tacke idu iznad linije, ona jedna tacka gore desno — nagli skok cena
+#           izolovane tackice dole levo  - to su veliki padovi cena (Katrina 2005, finansijska kriza 2008) 
+# desni rep: tacke idu iznad linije, ona jedna tacka gore desno - nagli skok cena
 
 # 4. Correlogram
 # Lag 0 je uvek 1.0, to je korelacija serije sa samom sobom
-# Lagovi 1-10 — sve tacke su unutar plave zone
+# Lagovi 1-10 - sve tacke su unutar plave zone
 # Reziduali nemaju nikakvu preostalu autokorelaciju, svaka nedelja je
 # nezavisna od prethodne. Model je iscrpeo svu informaciju iz serije,
 # nije ostalo nista sto bi mogao da nauci.
@@ -194,7 +193,7 @@ print(lb_test)
 
 # %% walk-forward validacija
  
-# Walk-forward: model se postepeno prosiruje novim opservacijama
+# Walk-forward: model se postepeno prosiruje novim merenjima
 # Simulira realno koriscenje - svake nedelje dobijamo novu stvarnu vrednost
 # i azuriramo model pre sledece predikcije.
 # Validacioni skup koristimo za procenu generalizacije pre test skupa.
@@ -294,12 +293,12 @@ axes[1].set_xlabel('Datum')
 axes[1].legend()
  
 plt.tight_layout()
-# plt.savefig('../../data/processed/arima_predikcije.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arima_predikcije.png', dpi=150, bbox_inches='tight')
 plt.show()
 
-# COVID pad (2020-01 do 2020-07), model prati nagli pad skoro savrseno, cak i taj ekstremni minimum
-# Oporavak (2020-07 do 2021) — rastuci trend pracen bez problema
-# Stabilni periodi (2018-2019) — gotovo identicne linije
+# COVID pad (2020-01 do 2020-07), model prati nagli pad jako dobro, cak i taj ekstremni minimum
+# Oporavak (2020-07 do 2021) - rastuci trend pracen bez problema
+# Stabilni periodi (2018-2019)  gotovo identicne linije
 
 # Jedina mesta gde se vidi malo odvajanje je
 # na nekim vrhovima i dolinama crvena malo kasni za plavom,
@@ -324,7 +323,7 @@ axes[1].set_xlabel('Greska (USD/galon)')
 axes[1].set_ylabel('Frekvencija')
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/arima_reziduali.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arima_reziduali.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Reziduali osciluju nasumicno oko nule kroz ceo period
@@ -334,8 +333,7 @@ plt.show()
 
 # ovaj grafik za distribuciju nam kaze da je distribucija centrirana oko nule,
 # model ne precenjuje ni ne potcenjuje 
-# Vecina gresaka je izmedju -0.05 i +0.05 USD/galon 
-# sto je konzistentno sa MAE od 0.0262
+# Vecina gresaka je izmedju -0.05 i +0.05 USD/galon
  
 # %% cuvanje modela i rezultata
  
@@ -358,22 +356,20 @@ arima_predictions = {
     'val_true'         : val_serija.values,
 }
  
-with open('../../data/processed/arima_model.pkl', 'wb') as f:
+with open('data/processed/arima_model.pkl', 'wb') as f:
     pickle.dump(arima_fit, f)
  
-with open('../../data/processed/arima_predictions.pkl', 'wb') as f:
+with open('data/processed/arima_predictions.pkl', 'wb') as f:
     pickle.dump(arima_predictions, f)
  
-with open('../../data/processed/arima_metrics.pkl', 'wb') as f:
+with open('data/processed/arima_metrics.pkl', 'wb') as f:
     pickle.dump(arima_metrics, f)
  
 print("\nSacuvano:")
-print("  ../../data/processed/arima_model.pkl")
-print("  ../../data/processed/arima_predictions.pkl")
-print("  ../../data/processed/arima_metrics.pkl")
-print(f"\n{'='*50}")
+print("data/processed/arima_model.pkl")
+print("data/processed/arima_predictions.pkl")
+print("data/processed/arima_metrics.pkl")
 print("ARIMA TRENIRANJE ZAVRSENO")
-print(f"{'='*50}")
 print(f"  Model  : ARIMA({BEST_P},{BEST_D},{BEST_Q})")
 print(f"  Val  RMSE: {val_rmse:.4f} | MAE: {val_mae:.4f} | MAPE: {val_mape:.2f}%")
 print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2f}%")

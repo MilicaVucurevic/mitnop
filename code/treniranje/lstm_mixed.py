@@ -7,9 +7,9 @@ Created on Fri Jun  5 14:34:55 2026
 
 # %% dokumentacija
  
-# Opis: Razvoj i treniranje LSTM modela na stratifikovanom skupu podataka.
-#       Stratifikacija: 70% iz perioda finansijske krize + 70% iz covid perioda +
-#                       70% iz normalnog perioda, spojeno hronoloski.
+# Opis: Razvoj i treniranje LSTM modela na izmesanom skupu podataka.
+#       70% iz perioda finansijske krize + 70% iz covid perioda +
+#       70% iz normalnog perioda, spojeno hronoloski.
 #       Arhitektura je identicna originalnom LSTM modelu:
 #       dva LSTM sloja + Dropout + Dense izlazni sloj.
 #       Cilj: ispitati da li ravnomerna zastupljenost sva tri tipa trzisnih
@@ -49,19 +49,19 @@ def load_pkl(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
  
-X_train = load_pkl(' ../../data/processed/X_train_mix.pkl')
-X_val   = load_pkl(' ../../data/processed/X_val_mix.pkl')
-X_test  = load_pkl(' ../../data/processed/X_test_mix.pkl')
+X_train = load_pkl('data/processed/X_train_mix.pkl')
+X_val   = load_pkl('data/processed/X_val_mix.pkl')
+X_test  = load_pkl('data/processed/X_test_mix.pkl')
  
-y_train = load_pkl(' ../../data/processed/y_train_mix.pkl')
-y_val   = load_pkl(' ../../data/processed/y_val_mix.pkl')
-y_test  = load_pkl(' ../../data/processed/y_test_mix.pkl')
+y_train = load_pkl('data/processed/y_train_mix.pkl')
+y_val   = load_pkl('data/processed/y_val_mix.pkl')
+y_test  = load_pkl('data/processed/y_test_mix.pkl')
  
-dates_train = load_pkl(' ../../data/processed/dates_train_mix.pkl')
-dates_val   = load_pkl(' ../../data/processed/dates_val_mix.pkl')
-dates_test  = load_pkl(' ../../data/processed/dates_test_mix.pkl')
+dates_train = load_pkl('data/processed/dates_train_mix.pkl')
+dates_val   = load_pkl('data/processed/dates_val_mix.pkl')
+dates_test  = load_pkl('data/processed/dates_test_mix.pkl')
  
-scaler = load_pkl(' ../../data/processed/scaler.pkl')
+scaler = load_pkl('data/processed/scaler.pkl')
  
 print("Uspesno ucitani podaci (pomesani/spojeni skup):")
 print(f"  X_train : {X_train.shape}  | y_train : {y_train.shape}")
@@ -143,7 +143,6 @@ reduce_lr = ReduceLROnPlateau(
 # %% treniranje modela
  
 print("\nPokretanje treniranja LSTM modela (izmesani skup)...")
-print("=" * 50)
  
 history = model.fit(
     X_train, y_train,
@@ -182,7 +181,7 @@ axes[1].legend()
  
 plt.suptitle('LSTM (izmesani skup) - Krive ucenja', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_strat_learning_curve.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/lstm_mix_learning_curve.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Loss (MSE):
@@ -190,7 +189,7 @@ plt.show()
 # Nakon toga oba se stabilizuju i ostaju blizu jedan drugog kroz ceo trening
 # Nema velikog raskoraka između train i val loss, nema overfittinga
 
-# MAE — desni grafik:
+# MAE - desni grafik:
 # Isti obrazac,  nagli pad pa stabilizacija
 # Val MAE (crvena) malo osciluje oko train MAE (plava)
 # Oscilacije su prisutne ali nisu dramaticne
@@ -278,7 +277,7 @@ axes[1].legend()
  
 plt.suptitle('LSTM (izmesani skup) - Predikcije vs Stvarne vrednosti', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_strat_predikcije.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/lstm_mix_predikcije.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Vizuelno model solidno prati trendove, ali ima problema na naglim promenama pravca
@@ -294,16 +293,16 @@ fig, axes = plt.subplots(2, 1, figsize=(14, 7))
 axes[0].plot(dates_test_dt, reziduali_test, color='darkorange', linewidth=0.8)
 axes[0].axhline(0, color='black', linestyle='--', linewidth=1)
 axes[0].set_title('Reziduali na test skupu (stvarna - predviđena vrednost)')
-axes[0].set_ylabel('Greška (USD/galon)')
+axes[0].set_ylabel('Greska (USD/galon)')
  
 axes[1].hist(reziduali_test, bins=40, color='darkorange', alpha=0.7, edgecolor='white')
 axes[1].axvline(0, color='black', linestyle='--', linewidth=1)
 axes[1].set_title('Distribucija reziduala')
-axes[1].set_xlabel('Greška (USD/galon)')
+axes[1].set_xlabel('Greska (USD/galon)')
 axes[1].set_ylabel('Frekvencija')
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_strat_reziduali.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/lstm_mix_reziduali.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Gornji grafik - Reziduali kroz vreme:
@@ -316,10 +315,10 @@ plt.show()
 # reziduali nisu nasumicni oko nule, postoje dugi periodi gde su konzistentno pozitivni
 # ili negativni
 
-# Donji grafik — Distribucija reziduala:
+# Donji grafik - Distribucija reziduala:
 
 # Distribucija je relativno ravna, od -0.25 do +0.25
-# Nije centrirana oko nule — ima podjednako gresaka na obe strane ali su rasporedjene siroko
+# Nije centrirana oko nule - ima podjednako gresaka na obe strane ali su rasporedjene siroko
 # ARIMA reziduali su bili koncentrisani oko nule
  
 # model nije u potpunosti naucio sve obrasce u podacima, verovatno zbog malog trening skupa, 
@@ -327,8 +326,8 @@ plt.show()
  
 # %% cuvanje modela i rezultata
  
-lstm_strat_metrics = {
-    'model'     : 'LSTM_stratified',
+lstm_mix_metrics = {
+    'model'     : 'LSTM_mixed',
     'val_rmse'  : val_rmse,
     'val_mae'   : val_mae,
     'val_mape'  : val_mape,
@@ -337,7 +336,7 @@ lstm_strat_metrics = {
     'test_mape' : test_mape,
 }
  
-lstm_strat_predictions = {
+lstm_mix_predictions = {
     'dates_test' : dates_test_dt,
     'y_true'     : y_test_true,
     'y_pred'     : y_test_pred,
@@ -346,24 +345,24 @@ lstm_strat_predictions = {
     'val_pred'   : y_val_pred,
 }
  
-os.makedirs('../../data/processed', exist_ok=True)
-model.save('../../data/processed/lstm_strat_model.keras')
+os.makedirs('data/processed', exist_ok=True)
+model.save('data/processed/lstm_mix_model.keras')
  
-with open('../../data/processed/lstm_strat_history.pkl', 'wb') as f:
+with open('data/processed/lstm_mix_history.pkl', 'wb') as f:
     pickle.dump(history.history, f)
  
-with open('../../data/processed/lstm_strat_predictions.pkl', 'wb') as f:
-    pickle.dump(lstm_strat_predictions, f)
+with open('data/processed/lstm_mix_predictions.pkl', 'wb') as f:
+    pickle.dump(lstm_mix_predictions, f)
  
-with open('../../data/processed/lstm_strat_metrics.pkl', 'wb') as f:
-    pickle.dump(lstm_strat_metrics, f)
+with open('data/processed/lstm_mix_metrics.pkl', 'wb') as f:
+    pickle.dump(lstm_mix_metrics, f)
  
 print("\nSacuvano:")
-print("  data/processed/lstm_strat_model.keras")
-print("  data/processed/lstm_strat_history.pkl")
-print("  data/processed/lstm_strat_predictions.pkl")
-print("  data/processed/lstm_strat_metrics.pkl")
-print("LSTM (IZMESANI SKUP) TRENIRANJE ZAVRSENO")
+print("data/processed/lstm_mix_model.keras")
+print("data/processed/lstm_mix_history.pkl")
+print("data/processed/lstm_mix_predictions.pkl")
+print("data/processed/lstm_mix_metrics.pkl")
+print("LSTM (izmesani skup) treniranje zavrseno")
 print(f"  Val  RMSE: {val_rmse:.4f} | MAE: {val_mae:.4f} | MAPE: {val_mape:.2f}%")
 print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2f}%")
 
@@ -378,8 +377,3 @@ print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2
 #  RMSE : 0.1260 USD/galon
 #  MAE  : 0.1069 USD/galon
 #  MAPE : 5.21%
-
-# Na validaciji je bolji prvi LSTM, ali na test skupu izmesani LSTM je bolji po svim metrikama
-# možemo zaključiti da se izmesani LSTM vise snalazi model,
-# ravnomerna zastupljenost svih trzisnih perioda u trening skupu pomogla je modelu da se bolje
-# snadje na nevidjenim podacima, uprkos manjem trening skupu

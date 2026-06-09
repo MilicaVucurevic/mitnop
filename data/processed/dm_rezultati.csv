@@ -1,0 +1,16 @@
+Model 1,Model 2,DM stat,p-vrednost,Zakljucak
+ARIMA,ARIMAX,0.2442,0.8086,nije znacajno | Model 2 je bolji
+ARIMA,LSTM,-8.5359,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMA,GRU,-7.4688,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMA,LSTM_mixed,-10.9741,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMA,GRU_mixed,-6.1486,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMAX,LSTM,-8.6458,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMAX,GRU,-7.4795,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMAX,LSTM_mixed,-10.9832,0.0,*** (p < 0.01) | Model 1 je bolji
+ARIMAX,GRU_mixed,-6.1948,0.0,*** (p < 0.01) | Model 1 je bolji
+LSTM,GRU,0.6885,0.4958,nije znacajno | Model 2 je bolji
+LSTM,LSTM_mixed,-8.1757,0.0,*** (p < 0.01) | Model 1 je bolji
+LSTM,GRU_mixed,-4.1784,0.0002,*** (p < 0.01) | Model 1 je bolji
+GRU,LSTM_mixed,-8.1269,0.0,*** (p < 0.01) | Model 1 je bolji
+GRU,GRU_mixed,-4.1362,0.0002,*** (p < 0.01) | Model 1 je bolji
+LSTM_mixed,GRU_mixed,4.2594,0.0002,*** (p < 0.01) | Model 2 je bolji

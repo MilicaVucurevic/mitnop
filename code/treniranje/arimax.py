@@ -48,7 +48,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # %% ucitavanje podataka
  
 # ARIMAX koristi originalne vrednosti - od 2006. zbog USD indexa
-df = pd.read_csv('../../data/processed/df_original.csv', parse_dates=['date'])
+df = pd.read_csv('data/processed/df_original.csv', parse_dates=['date'])
 df = df.set_index('date')
  
 # filtriramo od 2006. jer od tada imamo sve tri varijable
@@ -70,7 +70,7 @@ print(f"Ukupno redova (od 2006): {len(serija)}")
 print(f"Period: {serija.index.min().date()} -> {serija.index.max().date()}")
 print(f"Min: {serija.min():.3f} | Max: {serija.max():.3f} | Mean: {serija.mean():.3f}")
 print(f"\nEgzogene varijable: {exog.columns.tolist()}")
-print(f"NaN u egzogenim: {exog.isnull().sum().to_dict()}")
+print(f"Nedostajuce vrednosti u egzogenim: {exog.isnull().sum().to_dict()}")
  
 # %% ACF i PACF grafici za odredjivanje p i q
  
@@ -88,7 +88,7 @@ axes[1].set_title('PACF - regular_conv (nakon 1. diferenciranja, period 2006-202
 axes[1].set_xlabel('Lag (nedelje)')
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/arimax_acf_pacf.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arimax_acf_pacf.png', dpi=150, bbox_inches='tight')
 plt.show()
  
 # %% grid search za parametre (p, q)
@@ -102,7 +102,6 @@ d = 1
  
 print("\nPretrazivanje optimalnih parametara (p, d, q) na osnovu AIC...")
 print(f"{'p':>4} {'d':>4} {'q':>4} {'AIC':>12} {'BIC':>12}")
-print("-" * 40)
  
 rezultati_grid = []
  
@@ -177,7 +176,7 @@ print(f"Test RMSE: {test_rmse_d:.4f} | MAE: {test_mae_d:.4f} | MAPE: {test_mape_
 fig = arimax_fit.plot_diagnostics(figsize=(14, 10))
 fig.suptitle(f'Dijagnostika reziduala - ARIMAX({BEST_P},{BEST_D},{BEST_Q})', fontsize=13)
 plt.tight_layout()
-plt.savefig('../../data/processed/arimax_dijagnostika.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arimax_dijagnostika.png', dpi=150, bbox_inches='tight')
 plt.show()
  
 # Ljung-Box test - da li su reziduali beli sum (bez autokorelacije)
@@ -186,8 +185,8 @@ print("\nLjung-Box test (p > 0.05 = reziduali su beli sum, model je dobar):")
 print(lb_test)
 
 # 1. Standardizovani reziduali:
-# Reziduali osciluju nasumicno oko nule kroz ceo period — nema trenda ni obrasca
-# Jedan veliki skok oko 2008. — finansijska kriza
+# Reziduali osciluju nasumicno oko nule kroz ceo period - nema trenda ni obrasca
+# Jedan veliki skok oko 2008. - finansijska kriza
 
 # 2. Histogram + KDE (gore desno):
 # Narandzasta KDE kriva je uza i visa od zelene N(0,1),
@@ -316,7 +315,7 @@ print(f"  MAPE : {test_mape:.2f}%")
 # Visi RMSE kod ARIMAX-a na test skupu znaci da je u nekom momentu spoljna varijabla
 # poslala sum, pa je model napravio nekoliko malo vecih promasaja nego cista ARIMA.
 # Ono sto je odlicno za oba modela jeste da su greske na test skupu manje nego na 
-# validacionom skupu ( test MAPE je ~1.08%, a val MAPE je ~1.25%).
+# validacionom skupu ( test MAPE je  oko 1.08%, a val MAPE je oko 1.25%).
  
 # %% vizualizacija predikcija na test skupu
  
@@ -344,7 +343,7 @@ axes[1].set_xlabel('Datum')
 axes[1].legend()
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/arimax_predikcije.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arimax_predikcije.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Gornji grafik (ceo period 2006-2021):
@@ -381,18 +380,18 @@ axes[1].set_xlabel('Greska (USD/galon)')
 axes[1].set_ylabel('Frekvencija')
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/arimax_reziduali.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/arimax_reziduali.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Gornji grafik — Reziduali kroz vreme:
-# Reziduali osciluju nasumicno oko nule kroz ceo period — nema trenda nagore ili nadole, 
+# Reziduali osciluju nasumicno oko nule kroz ceo period - nema trenda nagore ili nadole, 
 # nema perioda gde je model precenjivao ili potcenjivao cenu
 # COVID period: vide se nesto vece oscilacije, model je malo teze pratio nagle promene
 # Od 2021. nadalje: reziduali postaju malo manji i stabilniji
 # model se malo bolje snalazi kako prima nove podatke
 
-# Donji grafik — Distribucija reziduala:
-# Distribucija je približno centrirana oko nule
+# Donji grafik - Distribucija reziduala:
+# Distribucija je priblizno centrirana oko nule
 # Vecina gresaka se nalazi izmedju -0.05 i +0.05 USD/galonu
 # Distribucija nije savrseno simetricna
 # To se verovatno desava tokom perioda brzog rasta cena (kraj 2020 i 2021) kada model malo kasni za naglim porastom
@@ -423,7 +422,7 @@ arimax_predictions = {
     'val_dates'       : val_serija.index,
     'val_true'        : val_serija.values,
 }
-os.makedirs('data/processed', exist_ok=True)  # kreira folder ako ne postoji
+
 with open('data/processed/arimax_model.pkl', 'wb') as f:
     pickle.dump(arimax_fit, f)
  

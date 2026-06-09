@@ -47,19 +47,19 @@ def load_pkl(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-X_train = load_pkl('../../data/processed/X_train.pkl')
-X_val   = load_pkl('../../data/processed/X_val.pkl')
-X_test  = load_pkl('../../data/processed/X_test.pkl')
+X_train = load_pkl('data/processed/X_train.pkl')
+X_val   = load_pkl('data/processed/X_val.pkl')
+X_test  = load_pkl('data/processed/X_test.pkl')
 
-y_train = load_pkl('../../data/processed/y_train.pkl')
-y_val   = load_pkl('../../data/processed/y_val.pkl')
-y_test  = load_pkl('../../data/processed/y_test.pkl')
+y_train = load_pkl('data/processed/y_train.pkl')
+y_val   = load_pkl('data/processed/y_val.pkl')
+y_test  = load_pkl('data/processed/y_test.pkl')
 
-dates_train = load_pkl('../../data/processed/dates_train.pkl')
-dates_val   = load_pkl('../../data/processed/dates_val.pkl')
-dates_test  = load_pkl('../../data/processed/dates_test.pkl')
+dates_train = load_pkl('data/processed/dates_train.pkl')
+dates_val   = load_pkl('data/processed/dates_val.pkl')
+dates_test  = load_pkl('data/processed/dates_test.pkl')
 
-scaler = load_pkl('../../data/processed/scaler.pkl')
+scaler = load_pkl('data/processed/scaler.pkl')
 
 print("Uspesno ucitani podaci:")
 print(f"  X_train : {X_train.shape}  | y_train : {y_train.shape}")
@@ -92,7 +92,7 @@ print(f"  Patience  : {PATIENCE}")
 
 # %% izgradnja arhitekture modela
 
-# Postavljamo seed za reproduktibilnost - da bi svako pokretanje dalo iste rezultate
+# da bi svako pokretanje dalo iste rezultate
 tf.random.set_seed(42)
 np.random.seed(42)
 
@@ -139,7 +139,6 @@ early_stopping = EarlyStopping(
 )
 
 # ReduceLROnPlateau - smanjuje learning rate ako val_loss stagnira
-# pomaze modelu da "fine-tune" kada se priblizi optimumu
 reduce_lr = ReduceLROnPlateau(
     monitor='val_loss',
     factor=0.6,         # nova lr = stara lr * 0.5
@@ -151,7 +150,6 @@ reduce_lr = ReduceLROnPlateau(
 # %% treniranje modela
 
 print("\nPokretanje treniranja LSTM modela...")
-print("=" * 50)
 
 history = model.fit(
     X_train, y_train,
@@ -192,7 +190,7 @@ axes[1].legend()
 
 plt.suptitle('LSTM - Krive ucenja', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_learning_curve.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/lstm_learning_curve.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 
@@ -268,7 +266,7 @@ axes[1].legend()
 
 plt.suptitle('LSTM - Predikcije vs Stvarne vrednosti', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_predikcije.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/lstm_predikcije.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # %% residual plot
@@ -280,16 +278,16 @@ fig, axes = plt.subplots(2, 1, figsize=(14, 7))
 axes[0].plot(dates_test_dt, reziduali_test, color='darkorange', linewidth=0.8)
 axes[0].axhline(0, color='black', linestyle='--', linewidth=1)
 axes[0].set_title('Reziduali na test skupu (stvarna - predviđena vrednost)')
-axes[0].set_ylabel('Greška (USD/galon)')
+axes[0].set_ylabel('Greska (USD/galon)')
 
 axes[1].hist(reziduali_test, bins=40, color='darkorange', alpha=0.7, edgecolor='white')
 axes[1].axvline(0, color='black', linestyle='--', linewidth=1)
 axes[1].set_title('Distribucija reziduala')
-axes[1].set_xlabel('Greška (USD/galon)')
+axes[1].set_xlabel('Greska (USD/galon)')
 axes[1].set_ylabel('Frekvencija')
 
 plt.tight_layout()
-#plt.savefig('../../data/processed/lstm_reziduali.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/lstm_reziduali.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Model pokazuje gresku tokom COVID perioda usled nagle promene
@@ -317,7 +315,7 @@ lstm_predictions = {
     'val_true'    : y_val_true,
     'val_pred'    : y_val_pred,
 }
-os.makedirs('data/processed', exist_ok=True)  # kreira folder ako ne postoji
+
 model.save('data/processed/lstm_model.keras')
 
 with open('data/processed/lstm_history.pkl', 'wb') as f:
@@ -329,14 +327,12 @@ with open('data/processed/lstm_predictions.pkl', 'wb') as f:
 with open('data/processed/lstm_metrics.pkl', 'wb') as f:
     pickle.dump(lstm_metrics, f)
 
-print("\nSačuvano:")
+print("\nSacuvano:")
 print("data/processed/lstm_model.keras")
 print("data/processed/lstm_history.pkl")
 print("data/processed/lstm_predictions.pkl")
 print("data/processed/lstm_metrics.pkl")
-print(f"\n{'='*50}")
 print("LSTM TRENIRANJE ZAVRSENO")
-print(f"{'='*50}")
 print(f"  Val  RMSE: {val_rmse:.4f} | MAE: {val_mae:.4f} | MAPE: {val_mape:.2f}%")
 print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2f}%")
 
@@ -345,16 +341,3 @@ print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2
 
 # Val  RMSE: 0.1154 | MAE: 0.0944 | MAPE: 3.68%
 # Test RMSE: 0.2074 | MAE: 0.1604 | MAPE: 6.40%
-
-# %% zakljucak
-
-# ARIMA je znacajno bolja od LSTM na ovom datasetu, i to na oba skupa.
-# Razlozi:
-
-# Cene goriva su visoko autokorelisane — sledeca vrednost jako zavisi od prethodne, 
-# sto je upravo ono za šta je ARIMA dizajnirana
-# LSTM je mocniji ali mu treba mnogo vise podataka da pokaze prednost
-# ARIMA je jednostavniji model ali savrseno odgovara ovom tipu vremenske serije
-
-# Kompleksniji model ne znaci uvek bolji rezultat,vazno je odabrati model koji 
-# odgovara prirodi podataka.

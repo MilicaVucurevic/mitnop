@@ -49,19 +49,19 @@ def load_pkl(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
  
-X_train = load_pkl('../data/processed/X_train_mix.pkl')
-X_val   = load_pkl('../data/processed/X_val_mix.pkl')
-X_test  = load_pkl('../data/processed/X_test_mix.pkl')
+X_train = load_pkl('data/processed/X_train_mix.pkl')
+X_val   = load_pkl('data/processed/X_val_mix.pkl')
+X_test  = load_pkl('data/processed/X_test_mix.pkl')
  
-y_train = load_pkl('../data/processed/y_train_mix.pkl')
-y_val   = load_pkl('../data/processed/y_val_mix.pkl')
-y_test  = load_pkl('../data/processed/y_test_mix.pkl')
+y_train = load_pkl('data/processed/y_train_mix.pkl')
+y_val   = load_pkl('data/processed/y_val_mix.pkl')
+y_test  = load_pkl('data/processed/y_test_mix.pkl')
  
-dates_train = load_pkl('../data/processed/dates_train_mix.pkl')
-dates_val   = load_pkl('../data/processed/dates_val_mix.pkl')
-dates_test  = load_pkl('../data/processed/dates_test_mix.pkl')
+dates_train = load_pkl('data/processed/dates_train_mix.pkl')
+dates_val   = load_pkl('data/processed/dates_val_mix.pkl')
+dates_test  = load_pkl('data/processed/dates_test_mix.pkl')
  
-scaler = load_pkl('../data/processed/scaler.pkl')
+scaler = load_pkl('data/processed/scaler.pkl')
  
 print("Uspesno ucitani podaci (pomesani skup):")
 print(f"  X_train : {X_train.shape}  | y_train : {y_train.shape}")
@@ -144,7 +144,6 @@ reduce_lr = ReduceLROnPlateau(
 # %% treniranje modela
  
 print("\nPokretanje treniranja GRU modela (izmesani skup)...")
-print("=" * 50)
  
 history = model.fit(
     X_train, y_train,
@@ -183,7 +182,7 @@ axes[1].legend()
  
 plt.suptitle('GRU (izmesani skup) - Krive ucenja', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/gru_mix_learning_curve.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/gru_mix_learning_curve.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Loss (MSE) — levi grafik:
@@ -264,13 +263,13 @@ axes[1].legend()
  
 plt.suptitle('GRU (izmesani skup) - Predikcije vs Stvarne vrednosti', fontsize=13)
 plt.tight_layout()
-#plt.savefig('../../data/processed/gru_mix_predikcije.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/gru_mix_predikcije.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Vizualizacija predikcija - gornji grafik (Validacioni skup):
 # Model solidno prati opsti trend kretanja cena.
 
-# Vizualizacija predikcija — donji grafik (Test skup):
+# Vizualizacija predikcija - donji grafik (Test skup):
 # Model dobro prati trend u stabilnim periodima (2016-2019).
 # Vidljiv problem u periodu naglog rasta cena (2017-2018), model potcenjuje vrednosti,
 # stvarne cene rastu brze nego sto model predvidja.
@@ -286,17 +285,17 @@ fig, axes = plt.subplots(2, 1, figsize=(14, 7))
  
 axes[0].plot(dates_test_dt, reziduali_test, color='darkorange', linewidth=0.8)
 axes[0].axhline(0, color='black', linestyle='--', linewidth=1)
-axes[0].set_title('Reziduali na test skupu (stvarna - predviđena vrednost)')
-axes[0].set_ylabel('Greška (USD/galon)')
+axes[0].set_title('Reziduali na test skupu (stvarna - predvidjena vrednost)')
+axes[0].set_ylabel('Greska (USD/galon)')
  
 axes[1].hist(reziduali_test, bins=40, color='darkorange', alpha=0.7, edgecolor='white')
 axes[1].axvline(0, color='black', linestyle='--', linewidth=1)
 axes[1].set_title('Distribucija reziduala')
-axes[1].set_xlabel('Greška (USD/galon)')
+axes[1].set_xlabel('Greska (USD/galon)')
 axes[1].set_ylabel('Frekvencija')
  
 plt.tight_layout()
-#plt.savefig('../../data/processed/gru_mix_reziduali.png', dpi=150, bbox_inches='tight')
+plt.savefig('results/gru_mix_reziduali.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 # Gornji grafik - Reziduali kroz vreme:
@@ -314,7 +313,7 @@ plt.show()
 # sto potvrdjuje da model potcenjuje cene, posebno u periodu rasta.
 # Raspon gresaka je od oko -0.30 do +0.25 USD/galonu.
 # Distribucija nije centrirana oko nule, sto znaci da postoji blaga u predikcijama.
-# Slicno sa rezidualima izmesanog LSTM-a, oba modela pokazuju sličan
+# Slicno sa rezidualima izmesanog LSTM-a, oba modela pokazuju slican
 # obrazac potcenjivanja u periodima rasta cena.
  
 # %% cuvanje modela i rezultata
@@ -338,16 +337,16 @@ gru_mix_predictions = {
     'val_pred'    : y_val_pred,
 }
  
-os.makedirs('../../data/processed', exist_ok=True)
-model.save('../../data/processed/gru_mix_model.keras')
+
+model.save('data/processed/gru_mix_model.keras')
  
-with open('../../data/processed/gru_mix_history.pkl', 'wb') as f:
+with open('data/processed/gru_mix_history.pkl', 'wb') as f:
     pickle.dump(history.history, f)
  
-with open('../../data/processed/gru_mix_predictions.pkl', 'wb') as f:
+with open('data/processed/gru_mix_predictions.pkl', 'wb') as f:
     pickle.dump(gru_mix_predictions, f)
  
-with open('../../data/processed/gru_mix_metrics.pkl', 'wb') as f:
+with open('data/processed/gru_mix_metrics.pkl', 'wb') as f:
     pickle.dump(gru_mix_metrics, f)
  
 print("\nSacuvano:")
@@ -355,7 +354,7 @@ print("  data/processed/gru_mix_model.keras")
 print("  data/processed/gru_mix_history.pkl")
 print("  data/processed/gru_mix_predictions.pkl")
 print("  data/processed/gru_mix_metrics.pkl")
-print("GRU (IZMESANI SKUP) TRENIRANJE ZAVRSENO")
+print("GRU (izmesani skup) treniranje zavrseno")
 print(f"  Val  RMSE: {val_rmse:.4f} | MAE: {val_mae:.4f} | MAPE: {val_mape:.2f}%")
 print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2f}%")
 
@@ -370,15 +369,3 @@ print(f"  Test RMSE: {test_rmse:.4f} | MAE: {test_mae:.4f} | MAPE: {test_mape:.2
 #  RMSE : 0.1246 USD/galon
 #  MAE  : 0.1044 USD/galon
 #  MAPE : 5.37%
-
-# Na validacionom skupu model gresi prosecno oko 17-18 centi po galonu (MAPE 5.58%),
-# sto je slabije od originalnog GRU-a (MAPE 3.07%) — ocekivano jer je validacioni
-# skup drugacije sastavljen.
-# Na test skupu model gresi prosecno oko 12-13 centi po galonu (MAPE 5.37%),
-# sto je znacajno bolje od originalnog GRU-a (MAPE 8.04%).
-# Obrazac je isti kao kod izmesanog LSTM-a — losije na validaciji, bolje na testu.
-# Ravnomerna zastupljenost sva tri trzisna perioda u trening skupu pomogla je
-# modelu da se bolje generalizuje na nevidjenim podacima.
-# GRU izmesani vs LSTM izmesani: metrike su prakticno identicne
-# (GRU test RMSE 0.1246 vs LSTM 0.1260), sto potvrdjuje da arhitektura
-# nije kljucni faktor, vaznije je kako je skup sastavljen.

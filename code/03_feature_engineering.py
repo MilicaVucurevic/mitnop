@@ -13,7 +13,7 @@ Created on Sat May 30 10:42:48 2026
 #       Sliding Window
 #       Hronoloska podela skupa (70/15/15)
 #
-# Logika: ARIMA radi direktno na originalnoj seriji i sama hendluje lagove.
+# Logika: ARIMA radi direktno na originalnoj seriji.
 #         LSTM i GRU nemaju urodjen koncept tabele sa istorijom, pa im rucno 
 #         saljemo prosle vrednosti nafte, dolara i benzina da bi predvideli buducnost.
 #
@@ -35,7 +35,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # %% ucitavanje podataka
 
 # df_scaled jer su ove kolone direktan ulaz u neuronske mreze
-df_scaled = pd.read_csv('../data/processed/df_scaled.csv', parse_dates=['date'])
+df_scaled = pd.read_csv('data/processed/df_scaled.csv', parse_dates=['date'])
 
 print("Uspesno ucitan df_scaled:")
 print(f"Dimenzije pre filtriranja: {df_scaled.shape}")
@@ -52,7 +52,7 @@ FEATURE_COLS = ['regular_conv', 'crude_oil', 'usd_index']
 # Pravimo kopiju da bismo ocuvali df_scaled netaknutim
 df_fe = df_scaled.copy()
 
-print("\n--- Pokretanje generisanja lagovanih kolona ---")
+print("\nPokretanje generisanja lagovanih kolona")
 for col in FEATURE_COLS:
     for lag in LAG_WEEKS:
         naziv_kolone = f'{col}_lag{lag}'
@@ -91,12 +91,12 @@ print(df_fe[preview_cols].head(15).to_string())
 
 # Provera NaN vrednosti za sve novokreirane kolone
 nove_kolone = [c for c in df_fe.columns if '_lag' in c or '_roll_' in c]
-print("\nBroj NaN vrednosti po novim kolonama:")
+print("\nBroj nedostajucih vrednosti po novim kolonama:")
 print(df_fe[nove_kolone].isnull().sum())
 
 # %% cuvanje podataka
 
-df_fe.to_csv('../data/processed/df_features.csv', index=False)
+df_fe.to_csv('data/processed/df_features.csv', index=False)
 
 print("Podaci sacuvani na putanji: data/processed/df_features.csv")
 print(f"Konacne dimenzije tabele: {df_fe.shape}")
@@ -107,7 +107,7 @@ df_clean = df_fe.dropna().reset_index(drop=True)
 print(f"Shape nakon dropna(): {df_clean.shape}")
 print(f"Uklonjeno redova: {len(df_fe) - len(df_clean)}")
  
-df_clean.to_csv('../data/processed/df_features_clean.csv', index=False)
+df_clean.to_csv('data/processed/df_features_clean.csv', index=False)
 print("Sacuvano: df_features_clean.csv")
 
 # %% sliding window
@@ -130,7 +130,7 @@ X_raw = df_clean[X_cols].values
 y_raw = df_clean[target_col].values
 
 # cuvamo i kolonu datuma za kasnije - koristicemo je za vizualizaciju predikcija
-# da bismo znali koji datum odgovara kom sample-u
+# da bismo znali koji datum odgovara kom uzorku
 dates_raw = df_clean['date'].values
 
 # funkcija za pakovanje podataka u 3D oblik (Samples, Timesteps, Features)
@@ -148,7 +148,7 @@ LOOK_BACK = 4
 X_lstm, y_lstm, dates_lstm = create_sliding_window(X_raw, y_raw, dates_raw, look_back=LOOK_BACK)
 
 # Provera dimenzija krajnjih matrica za LSTM i GRU
-print("\nFINALNE DIMENZIJE MATRICA ZA NEURONSKE MREZE")
+print("Finalne dimenzije matrica za neuronske mreze:")
 print(f"X_lstm oblik (Samples, Timesteps, Features): {X_lstm.shape}")
 print(f"y_lstm oblik (Samples, ): {y_lstm.shape}")
 
@@ -173,37 +173,37 @@ dates_val   = dates_lstm[train_end:val_end]
 dates_test  = dates_lstm[val_end:]
  
 print("\nHronoloska podela skupa")
-print(f"Ukupno samples: {n}")
-print(f"Train : {len(X_train)} samples | period: {str(dates_train[0])[:10]} -> {str(dates_train[-1])[:10]}")
-print(f"Val   : {len(X_val)}  samples | period: {str(dates_val[0])[:10]}   -> {str(dates_val[-1])[:10]}")
-print(f"Test  : {len(X_test)}  samples | period: {str(dates_test[0])[:10]}  -> {str(dates_test[-1])[:10]}")
+print(f"Ukupno uzoraka: {n}")
+print(f"Train : {len(X_train)} uzoraka | period: {str(dates_train[0])[:10]} -> {str(dates_train[-1])[:10]}")
+print(f"Val   : {len(X_val)}  uzoraka | period: {str(dates_val[0])[:10]}   -> {str(dates_val[-1])[:10]}")
+print(f"Test  : {len(X_test)}  uzoraka | period: {str(dates_test[0])[:10]}  -> {str(dates_test[-1])[:10]}")
 
 # %% cuvanje svih skupova u pickle fajlove
  
-with open('../data/processed/X_lstm.pkl', 'wb') as f:
+with open('data/processed/X_lstm.pkl', 'wb') as f:
     pickle.dump(X_lstm, f)
-with open('../data/processed/y_lstm.pkl', 'wb') as f:
+with open('data/processed/y_lstm.pkl', 'wb') as f:
     pickle.dump(y_lstm, f)
  
-with open('../data/processed/X_train.pkl', 'wb') as f:
+with open('data/processed/X_train.pkl', 'wb') as f:
     pickle.dump(X_train, f)
-with open('../data/processed/X_val.pkl', 'wb') as f:
+with open('data/processed/X_val.pkl', 'wb') as f:
     pickle.dump(X_val, f)
-with open('../data/processed/X_test.pkl', 'wb') as f:
+with open('data/processed/X_test.pkl', 'wb') as f:
     pickle.dump(X_test, f)
  
-with open('../data/processed/y_train.pkl', 'wb') as f:
+with open('data/processed/y_train.pkl', 'wb') as f:
     pickle.dump(y_train, f)
-with open('../data/processed/y_val.pkl', 'wb') as f:
+with open('data/processed/y_val.pkl', 'wb') as f:
     pickle.dump(y_val, f)
-with open('../data/processed/y_test.pkl', 'wb') as f:
+with open('data/processed/y_test.pkl', 'wb') as f:
     pickle.dump(y_test, f)
  
-with open('../data/processed/dates_train.pkl', 'wb') as f:
+with open('data/processed/dates_train.pkl', 'wb') as f:
     pickle.dump(dates_train, f)
-with open('../data/processed/dates_val.pkl', 'wb') as f:
+with open('data/processed/dates_val.pkl', 'wb') as f:
     pickle.dump(dates_val, f)
-with open('../data/processed/dates_test.pkl', 'wb') as f:
+with open('data/processed/dates_test.pkl', 'wb') as f:
     pickle.dump(dates_test, f)
  
 print("\nSvi skupovi sacuvani u data/processed/")

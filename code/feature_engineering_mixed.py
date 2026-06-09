@@ -38,7 +38,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
  
 # %% ucitavanje podataka
  
-df_scaled = pd.read_csv('../data/processed/df_scaled.csv', parse_dates=['date'])
+df_scaled = pd.read_csv('data/processed/df_scaled.csv', parse_dates=['date'])
  
 print("Uspesno ucitan df_scaled:")
 print(f"Dimenzije: {df_scaled.shape}")
@@ -107,7 +107,7 @@ print(f"\nSpojeni skup: {len(df_mix)} redova")
 print(f"Period: {df_mix['date'].iloc[0].date()} -> {df_mix['date'].iloc[-1].date()}")
  
 # cuvamo za pregled
-df_mix.to_csv('../data/processed/df_features_mixed.csv', index=False)
+df_mix.to_csv('data/processed/df_features_mixed.csv', index=False)
 print("Sacuvano: df_features_mixed.csv")
  
 # %% sliding window na spojenom skupu
@@ -134,7 +134,7 @@ def create_sliding_window(X_data, y_data, dates_data, look_back=1):
  
 X_lstm, y_lstm, dates_lstm = create_sliding_window(X_raw, y_raw, dates_raw, look_back=LOOK_BACK)
  
-print("\nFINALNE DIMENZIJE:")
+print("\nFinalne dimenzije:")
 print(f"X_lstm oblik (Samples, Timesteps, Features): {X_lstm.shape}")
 print(f"y_lstm oblik (Samples, ): {y_lstm.shape}")
  
@@ -165,25 +165,25 @@ print(f"Test  : {len(X_test)}  uzoraka | period: {str(dates_test[0])[:10]}  -> {
  
 # %% cuvanje skupova
  
-with open('../data/processed/X_train_mix.pkl', 'wb') as f:
+with open('data/processed/X_train_mix.pkl', 'wb') as f:
     pickle.dump(X_train, f)
-with open('../data/processed/X_val_mix.pkl', 'wb') as f:
+with open('data/processed/X_val_mix.pkl', 'wb') as f:
     pickle.dump(X_val, f)
-with open('../data/processed/X_test_mix.pkl', 'wb') as f:
+with open('data/processed/X_test_mix.pkl', 'wb') as f:
     pickle.dump(X_test, f)
  
-with open('../data/processed/y_train_mix.pkl', 'wb') as f:
+with open('data/processed/y_train_mix.pkl', 'wb') as f:
     pickle.dump(y_train, f)
-with open('../data/processed/y_val_mix.pkl', 'wb') as f:
+with open('data/processed/y_val_mix.pkl', 'wb') as f:
     pickle.dump(y_val, f)
-with open('../data/processed/y_test_mix.pkl', 'wb') as f:
+with open('data/processed/y_test_mix.pkl', 'wb') as f:
     pickle.dump(y_test, f)
  
-with open('../data/processed/dates_train_mix.pkl', 'wb') as f:
+with open('data/processed/dates_train_mix.pkl', 'wb') as f:
     pickle.dump(dates_train, f)
-with open('../data/processed/dates_val_mix.pkl', 'wb') as f:
+with open('data/processed/dates_val_mix.pkl', 'wb') as f:
     pickle.dump(dates_val, f)
-with open('../data/processed/dates_test_mix.pkl', 'wb') as f:
+with open('data/processed/dates_test_mix.pkl', 'wb') as f:
     pickle.dump(dates_test, f)
  
 print("\nSvi skupovi sacuvani u data/processed/")

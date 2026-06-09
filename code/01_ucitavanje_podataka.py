@@ -22,8 +22,7 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 
-#os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
-os.chdir('C:/Users/Milica/Documents/PetroVision')
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # %% cene goriva
 df_gorivo = pd.read_csv('data/raw/Weekly_Retail_Gasoline_and_Diesel_Prices.csv', 
@@ -92,73 +91,66 @@ print(df.tail())
 # %% provera nedostajucih vrednosti
 
 print()
-print("MISSING VALUES PO KOLONAMA:")
+print("Nedostajuce vrednosti po kolonama:")
 print(df.isnull().sum())
 print()
 
 # procenat nedostajucih vrednosti
 print()
-print("PROCENAT MISSING (%):")
+print("Procenat nedostajucih vrednosti (%):")
 print((df.isnull().sum() / len(df) * 100).round(2))
 print()
 
 # prikaz redova gde usd_index ima NaN
 print()
-print("REDOVI SA NaN u usd_index:")
+print("Redovi sa nedostajucim vrednostima u usd_index:")
 print(f"Ukupno: {df['usd_index'].isnull().sum()} redova")
 print(f"Period: {df[df['usd_index'].isnull()]['date'].min()} do {df[df['usd_index'].isnull()]['date'].max()}")
 
 # provera da li ima NaN u usd_index posle 2006?
 print()
 nan_posle_2006 = df[(df['date'] >= '2006-01-01') & (df['usd_index'].isnull())]
-print(f"NaN u usd_index posle 2006: {len(nan_posle_2006)} redova")
+print(f"Nedostajuce vrednosti u usd_index posle 2006: {len(nan_posle_2006)} redova")
 if len(nan_posle_2006) > 0:
     print(nan_posle_2006[['date', 'usd_index']].head(10))
     
 # koliko NaN je pre 2006
 print()
 nan_pre_2006 = df[(df['date'] < '2006-01-01') & (df['usd_index'].isnull())]
-print(f"NaN u usd_index pre 2006: {len(nan_pre_2006)} redova")
+print(f"Nedostajuce vrednosti u usd_index pre 2006: {len(nan_pre_2006)} redova")
 
 # poslednja nedelja u data set-u je NaN pa je fillujemo
 # popunjava samo taj jedan NaN na kraju sa prethodnom vrednoscu
 df['usd_index'] = df['usd_index'].ffill()
 
-# verifikacija
 print(df[df['date'] >= '2021-12-20'][['date', 'usd_index']])
 
 # %% provera tipova kolona, da li su sve float64
 
 print()
-print("TIPOVI KOLONA:")
+print("Tipovi kolona:")
 print(df.dtypes)
 print()
-print("OSNOVNE STATISTIKE:")
+print("Osnovne statistike:")
 print(df.describe())
 
 # %% detekcija COVID outlier-a
 
-# pregled cena 2019-2021 da vidimo kad su se stabilizovale, da bismo znali koji tacno opseg da posmatramo
 covid_period = df[(df['date'] >= '2020-03-01') & (df['date'] <= '2023-05-01')]
 print()
 print(covid_period[['date', 'regular_conv', 'crude_oil']].to_string())
 
-# po podacima vidimo da u periodu pre korone, cena regular_conv bila je 2.40-2.50 usd/galonu. Pad pocinje od
-# oko  2020-03-09 (2.272 benzin, 32.39 nafta, tad je bas nagli pad nafte, ovo pre bi mogle biti obicne oscilacije).
-# Cene se vracaju na pred COVID nivo (znaci 2.40+) tek od 2021-02-15
-# taj period od skoro godinu dana uzmemo kao COVID anomaliju. Kako ne bismo izbacivali taj period, zbog 
-# nekonzistentnosti podataka (za vremenske serije i ARIMU), uvescemo flag za taj period
 df['covid_flag'] = ((df['date'] >= '2020-03-09') & 
                     (df['date'] <= '2021-02-15')).astype(int)
 print()
-print(f"Redovi označeni kao COVID period: {df['covid_flag'].sum()}")
+print(f"Redovi oznaceni kao COVID period: {df['covid_flag'].sum()}")
 
 # %% finansijska kriza
 
 df['crisis_flag'] = ((df['date'] >= '2008-01-01') & 
                      (df['date'] <= '2008-12-31')).astype(int)
 print()
-print(f"Redovi označeni kao FINANSIJSKA KRIZA: {df['crisis_flag'].sum()}")
+print(f"Redovi oznaceni kao FINANSIJSKA KRIZA: {df['crisis_flag'].sum()}")
 
 # %% min-max normalizacija
 
@@ -181,10 +173,10 @@ df_scaled = df.copy()
 df_scaled[cols_to_scale] = scaler.fit_transform(df[cols_to_scale])
 
 print()
-print("ORIGINALNE VREDNOSTI (prve 3 vrste):")
+print("Originalne vrednosti (prve 3 vrste):")
 print(df[['date', 'regular_conv', 'crude_oil', 'usd_index']].head(3))
 print()
-print("SKALIRANJE VREDNOSTI (prve 3 vrste):")
+print("Skalirane vrednosti (prve 3 vrste):")
 print(df_scaled[['date', 'regular_conv', 'crude_oil', 'usd_index']].head(3))
 print()
 print("MIN/MAX po kolonama posle skaliranja:")
