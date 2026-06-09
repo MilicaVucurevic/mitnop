@@ -130,8 +130,23 @@ print(f"  Test  : {len(test_serija)}  obs | {test_serija.index[0].date()} -> {te
 print(f"\nTreniranje ARIMA({BEST_P}, {BEST_D}, {BEST_Q}) na trening skupu...")
 arima_model = ARIMA(train_serija, order=(BEST_P, BEST_D, BEST_Q))
 arima_fit = arima_model.fit()
+
+val_pred_direct = arima_fit.forecast(steps=len(val_serija))
+test_pred_direct_all = arima_fit.forecast(steps=len(val_serija) + len(test_serija))
+test_pred_direct = test_pred_direct_all[len(val_serija):]
+
+# metrike
+val_rmse_d  = np.sqrt(mean_squared_error(val_serija.values, val_pred_direct))
+val_mae_d   = mean_absolute_error(val_serija.values, val_pred_direct)
+val_mape_d  = np.mean(np.abs((val_serija.values - val_pred_direct) / val_serija.values)) * 100
+
+test_rmse_d  = np.sqrt(mean_squared_error(test_serija.values, test_pred_direct))
+test_mae_d   = mean_absolute_error(test_serija.values, test_pred_direct)
+test_mape_d  = np.mean(np.abs((test_serija.values - test_pred_direct) / test_serija.values)) * 100
+
+print(f"Val  RMSE: {val_rmse_d:.4f} | MAE: {val_mae_d:.4f} | MAPE: {val_mape_d:.2f}%")
+print(f"Test RMSE: {test_rmse_d:.4f} | MAE: {test_mae_d:.4f} | MAPE: {test_mape_d:.2f}%")
  
-print(arima_fit.summary())
 
 # %% dijagnostika reziduala
  

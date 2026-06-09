@@ -22,8 +22,8 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 
-os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
-#os.chdir('C:/Users/Milica/Documents/PetroVision')
+#os.chdir('C:/Users/danij/OneDrive/Desktop/treca/mitnop/projekat')
+os.chdir('C:/Users/Milica/Documents/PetroVision')
 
 # %% cene goriva
 df_gorivo = pd.read_csv('data/raw/Weekly_Retail_Gasoline_and_Diesel_Prices.csv', 
